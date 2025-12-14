@@ -1,0 +1,46 @@
+name: Deploy to Development
+
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  deploy:
+    name: Deploy to Dev Environment
+    runs-on: ubuntu-latest
+    environment:
+      name: development
+      url: https://dev.vehicle-api.example.com
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build application
+        run: npm run build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to Docker Registry
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/vehicle-api:dev
+            ${{ secrets.DOCKER_USERNAME }}/vehicle-api:dev-${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/vehicle-api:dev
+          cache-to: type=inline
+      - name: Deploy to development server
+        run: |
+          echo "Deploying to development environment..."
+          # Add deployment commands here (kubectl, docker-compose, etc.)
