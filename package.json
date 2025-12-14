@@ -50,6 +50,8 @@
     "dataloader": "^2.2.3",
     "fast-xml-parser": "^5.3.3",
     "graphql": "^16.12.0",
+    "graphql-depth-limit": "^1.1.0",
+    "graphql-query-complexity": "^1.1.0",
     "nestjs-pino": "^4.5.0",
     "opossum": "^9.0.0",
     "pino": "^10.1.0",

@@ -1,5 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { GraphQLModule as NestGraphQLModule } from '@nestjs/graphql';
+import { Logger } from 'nestjs-pino';
 
 import { GraphQLModule } from '@infrastructure/adapters/primary/graphql/graphql.module';
 import { VehicleTypeDataLoader } from '@infrastructure/adapters/primary/graphql/dataloaders/vehicle-type.dataloader';
@@ -16,6 +17,10 @@ describe('GraphQLModule', () => {
         {
           provide: VehicleTypeDataLoader,
           useValue: { createLoader: jest.fn() },
+        },
+        {
+          provide: Logger,
+          useValue: { warn: jest.fn(), debug: jest.fn() },
         },
       ],
     }).compile();

@@ -5,6 +5,8 @@ import { GraphQLFormattedError } from 'graphql';
 import { join } from 'path';
 
 import { VehicleTypeDataLoader } from './dataloaders/vehicle-type.dataloader';
+import { ComplexityPlugin } from './plugins/complexity.plugin';
+import { DepthLimitPlugin } from './plugins/depth-limit.plugin';
 
 export const getGraphQLConfig = (
   configService: ConfigService,
@@ -40,6 +42,10 @@ export const getGraphQLConfig = (
         },
       };
     },
+    plugins: [
+      moduleRef?.get(ComplexityPlugin, { strict: false }),
+      moduleRef?.get(DepthLimitPlugin, { strict: false }),
+    ].filter(Boolean) as any,
   };
 };
 

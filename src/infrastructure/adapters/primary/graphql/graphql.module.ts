@@ -7,6 +7,8 @@ import { ModuleRef } from '@nestjs/core';
 
 import { getGraphQLConfig } from './graphql.config';
 import { VehicleTypeDataLoader } from './dataloaders/vehicle-type.dataloader';
+import { ComplexityPlugin } from './plugins/complexity.plugin';
+import { DepthLimitPlugin } from './plugins/depth-limit.plugin';
 
 @Module({
   imports: [
@@ -19,7 +21,7 @@ import { VehicleTypeDataLoader } from './dataloaders/vehicle-type.dataloader';
         getGraphQLConfig(configService, moduleRef),
     }),
   ],
-  providers: [VehicleTypeDataLoader],
+  providers: [VehicleTypeDataLoader, ComplexityPlugin, DepthLimitPlugin],
 })
 export class GraphQLModule {}
 
