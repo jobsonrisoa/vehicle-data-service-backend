@@ -19,19 +19,21 @@ describe('RabbitMQModule', () => {
   };
 
   const mockChannel = {
+    waitForConfirms: jest.fn(),
     close: jest.fn(),
   };
 
   const mockConnection = {
-    createChannel: jest.fn().mockResolvedValue(mockChannel),
+    createConfirmChannel: jest.fn().mockResolvedValue(mockChannel),
     close: jest.fn(),
   };
 
   beforeEach(() => {
     jest.resetAllMocks();
-    mockConnection.createChannel = jest.fn().mockResolvedValue(mockChannel);
+    mockConnection.createConfirmChannel = jest.fn().mockResolvedValue(mockChannel);
     mockConnection.close = jest.fn();
     mockChannel.close = jest.fn();
+    mockChannel.waitForConfirms = jest.fn();
     (amqp.connect as jest.Mock).mockResolvedValue(mockConnection);
     (setupRabbitMQTopology as jest.Mock).mockResolvedValue(undefined);
     mockConfigService.get.mockImplementation((key: string) => {
@@ -46,9 +48,8 @@ describe('RabbitMQModule', () => {
     await module.onModuleInit();
 
     expect(amqp.connect).toHaveBeenCalledWith('amqp://localhost:5672', { heartbeat: 30 });
-    expect(mockConnection.createChannel).toHaveBeenCalled();
+    expect(mockConnection.createConfirmChannel).toHaveBeenCalled();
     expect(setupRabbitMQTopology).toHaveBeenCalledWith(mockChannel, mockLogger);
-    expect(mockChannel.close).toHaveBeenCalled();
     expect(mockLogger.info).toHaveBeenCalled();
   });
 
