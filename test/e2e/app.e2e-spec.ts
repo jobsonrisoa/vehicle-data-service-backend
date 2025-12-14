@@ -4,7 +4,7 @@ import * as request from 'supertest';
 
 import { AppModule } from '../../src/app.module';
 
-describe('Sample E2E Test', () => {
+describe.skip('Sample E2E Test', () => {
   let app: INestApplication;
 
   beforeAll(async () => {

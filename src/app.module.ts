@@ -7,9 +7,10 @@ import { DatabaseModule } from './infrastructure/adapters/secondary/persistence/
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { RestModule } from './infrastructure/adapters/primary/rest/rest.module';
+import { GraphQLModule } from './infrastructure/adapters/primary/graphql/graphql.module';
 
 @Module({
-  imports: [ConfigModule, LoggerModule, DatabaseModule, RestModule],
+  imports: [ConfigModule, LoggerModule, DatabaseModule, RestModule, GraphQLModule],
   controllers: [AppController],
   providers: [AppService],
 })

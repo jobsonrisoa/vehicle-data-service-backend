@@ -15,6 +15,7 @@ describe('GetVehicleMakeByIdUseCase (Unit)', () => {
       saveMany: jest.fn(),
       findByMakeId: jest.fn(),
       findById: jest.fn(),
+      findByIds: jest.fn(),
       findAll: jest.fn(),
       findByFilter: jest.fn(),
       count: jest.fn(),
@@ -41,7 +42,7 @@ describe('GetVehicleMakeByIdUseCase (Unit)', () => {
 
       const result = await useCase.execute(440);
 
-      expect(mockRepository.findByMakeId).toHaveBeenCalledWith(440);
+      expect(mockRepository.findByMakeId.mock.calls[0][0]).toBe(440);
       expect(result).toBeDefined();
       expect(result.makeId).toBe(440);
       expect(result.makeName).toBe('Audi');
@@ -113,7 +114,7 @@ describe('GetVehicleMakeByIdUseCase (Unit)', () => {
 
       await useCase.execute(440);
 
-      expect(mockRepository.findByMakeId).toHaveBeenCalledTimes(1);
+      expect(mockRepository.findByMakeId.mock.calls).toHaveLength(1);
     });
 
     it('should preserve all entity properties in DTO', async () => {
@@ -161,15 +162,17 @@ describe('GetVehicleMakeByIdUseCase (Unit)', () => {
     });
 
     it('should throw ValidationError for null makeId', async () => {
-      await expect(useCase.execute(null as any)).rejects.toThrow(ValidationError);
+      await expect(useCase.execute(null as unknown as number)).rejects.toThrow(ValidationError);
     });
 
     it('should throw ValidationError for undefined makeId', async () => {
-      await expect(useCase.execute(undefined as any)).rejects.toThrow(ValidationError);
+      await expect(useCase.execute(undefined as unknown as number)).rejects.toThrow(
+        ValidationError,
+      );
     });
 
     it('should throw ValidationError for string makeId', async () => {
-      await expect(useCase.execute('440' as any)).rejects.toThrow(ValidationError);
+      await expect(useCase.execute('440' as unknown as number)).rejects.toThrow(ValidationError);
     });
 
     it('should allow valid makeId values', async () => {
@@ -252,4 +255,3 @@ describe('GetVehicleMakeByIdUseCase (Unit)', () => {
     });
   });
 });
-

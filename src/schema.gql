@@ -1,0 +1,78 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type IngestionJob {
+  completedAt: DateTime
+  errors: [String!]!
+  failedMakes: Int!
+  id: ID!
+  processedMakes: Int!
+  progress: Int!
+  startedAt: DateTime!
+  status: IngestionStatus!
+  totalMakes: Int!
+}
+
+enum IngestionStatus {
+  COMPLETED
+  FAILED
+  IN_PROGRESS
+  PARTIALLY_COMPLETED
+  PENDING
+}
+
+type Mutation {
+  triggerIngestion: IngestionJob!
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  ingestionJob(id: String!): IngestionJob
+  ingestionStatus: IngestionJob
+  vehicleMake(makeId: Int!): VehicleMake
+  vehicleMakes(after: String, filter: VehicleMakeFilter, first: Int = 20): VehicleMakeConnection!
+}
+
+type VehicleMake {
+  createdAt: DateTime!
+  id: ID!
+  makeId: Int!
+  makeName: String!
+  updatedAt: DateTime!
+  vehicleTypes: [VehicleType!]!
+}
+
+type VehicleMakeConnection {
+  edges: [VehicleMakeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type VehicleMakeEdge {
+  cursor: String!
+  node: VehicleMake!
+}
+
+input VehicleMakeFilter {
+  hasVehicleTypes: Boolean
+  makeName: String
+}
+
+type VehicleType {
+  createdAt: DateTime
+  id: ID!
+  typeId: Int!
+  typeName: String!
+}

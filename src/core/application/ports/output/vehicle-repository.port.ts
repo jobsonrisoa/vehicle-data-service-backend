@@ -14,6 +14,7 @@ export interface IVehicleMakeRepository {
   saveMany(vehicleMakes: VehicleMake[]): Promise<void>;
   findByMakeId(makeId: number): Promise<VehicleMake | null>;
   findById(id: MakeId): Promise<VehicleMake | null>;
+  findByIds(ids: MakeId[]): Promise<VehicleMake[]>;
   findAll(options: PaginationOptions): Promise<PaginatedResult<VehicleMake>>;
   findByFilter(filter: VehicleMakeFilter): Promise<VehicleMake[]>;
   count(): Promise<number>;

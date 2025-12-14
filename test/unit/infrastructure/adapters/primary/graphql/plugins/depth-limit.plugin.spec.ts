@@ -1,38 +1,37 @@
 import { Logger } from 'nestjs-pino';
+import { GraphQLError } from 'graphql';
 
 import { DepthLimitPlugin } from '@infrastructure/adapters/primary/graphql/plugins/depth-limit.plugin';
 
-jest.mock('graphql-depth-limit', () => jest.fn());
-
 describe('DepthLimitPlugin', () => {
   let plugin: DepthLimitPlugin;
-  let logger: Logger;
-  let mockDepthLimit: jest.Mock;
+  let logger: jest.Mocked<Logger>;
 
   beforeEach(() => {
     logger = {
       warn: jest.fn(),
       debug: jest.fn(),
-    } as any;
-    mockDepthLimit = require('graphql-depth-limit');
-    mockDepthLimit.mockReturnValue(() => undefined);
+    } as unknown as jest.Mocked<Logger>;
     plugin = new DepthLimitPlugin(logger);
   });
 
   it('allows queries within depth', async () => {
     const listener = await plugin.requestDidStart();
-    await listener.didResolveOperation?.({ document: {} } as any);
+    const end = await listener.validationDidStart?.({} as never);
+    if (end) {
+      await Promise.resolve(end([]));
+    }
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.warn).not.toHaveBeenCalled();
   });
 
   it('rejects queries over depth', async () => {
-    const mockError = new Error('depth');
-    mockDepthLimit.mockReturnValue(() => [mockError]);
-    plugin = new DepthLimitPlugin(logger);
-
     const listener = await plugin.requestDidStart();
-    await expect(listener.didResolveOperation?.({ document: {} } as any)).rejects.toBe(mockError);
+    const end = await listener.validationDidStart?.({} as never);
+    if (end) {
+      await Promise.resolve(end([new GraphQLError('depth exceeded')]));
+    }
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.warn).toHaveBeenCalled();
   });
 });
-

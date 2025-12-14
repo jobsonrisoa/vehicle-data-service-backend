@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { IngestVehicleDataUseCase } from '../../../../../src/core/application/use-cases/ingest-vehicle-data.use-case';
-import { CombinedVehicleData } from '../../../../../src/core/application/use-cases/transform-xml-to-json.use-case';
+import {
+  CombinedVehicleData,
+  TransformXmlToJsonUseCase,
+} from '../../../../../src/core/application/use-cases/transform-xml-to-json.use-case';
 import { IExternalVehicleAPIPort } from '@application/ports/output/external-api.port';
 import { IEventPublisherPort } from '@application/ports/output/event-publisher.port';
 import { IIngestionJobRepository } from '@application/ports/output/ingestion-job-repository.port';
@@ -18,11 +21,11 @@ describe('IngestVehicleDataUseCase (Unit)', () => {
   let jobRepo: jest.Mocked<IIngestionJobRepository>;
   let apiPort: jest.Mocked<IExternalVehicleAPIPort>;
   let eventPublisher: jest.Mocked<IEventPublisherPort>;
-  let transformUseCase: {
-    execute: jest.MockedFunction<
-      (makes: ExternalMakeDTO[], types: Map<number, ExternalVehicleTypeDTO[]>) => CombinedVehicleData[]
-    >;
-  };
+  let transformUseCase: TransformXmlToJsonUseCase;
+  let executeSpy: jest.SpyInstance<
+    CombinedVehicleData[],
+    [ExternalMakeDTO[], Map<number, ExternalVehicleTypeDTO[]>]
+  >;
 
   beforeEach(() => {
     vehicleRepo = {
@@ -30,6 +33,7 @@ describe('IngestVehicleDataUseCase (Unit)', () => {
       saveMany: jest.fn(),
       findByMakeId: jest.fn(),
       findById: jest.fn(),
+      findByIds: jest.fn(),
       findAll: jest.fn(),
       findByFilter: jest.fn(),
       count: jest.fn(),
@@ -60,11 +64,16 @@ describe('IngestVehicleDataUseCase (Unit)', () => {
       publishWithRetry: jest.fn(),
     };
 
-    transformUseCase = {
-      execute: jest.fn(),
-    };
+    transformUseCase = new TransformXmlToJsonUseCase();
+    executeSpy = jest.spyOn(transformUseCase, 'execute');
 
-    useCase = new IngestVehicleDataUseCase(vehicleRepo, jobRepo, apiPort, eventPublisher, transformUseCase as any);
+    useCase = new IngestVehicleDataUseCase(
+      vehicleRepo,
+      jobRepo,
+      apiPort,
+      eventPublisher,
+      transformUseCase,
+    );
   });
 
   describe('execute - success paths', () => {
@@ -72,12 +81,14 @@ describe('IngestVehicleDataUseCase (Unit)', () => {
       jobRepo.hasRunningJob.mockResolvedValue(false);
 
       const externalMakes: ExternalMakeDTO[] = [{ Make_ID: 440, Make_Name: 'Audi' }];
-      const externalTypes: ExternalVehicleTypeDTO[] = [{ VehicleTypeId: 1, VehicleTypeName: 'Passenger Car' }];
+      const externalTypes: ExternalVehicleTypeDTO[] = [
+        { VehicleTypeId: 1, VehicleTypeName: 'Passenger Car' },
+      ];
 
       apiPort.getAllMakes.mockResolvedValue(externalMakes);
       apiPort.getVehicleTypesForMake.mockResolvedValue(externalTypes);
 
-      transformUseCase.execute.mockReturnValue([
+      executeSpy.mockReturnValue([
         { makeId: 440, makeName: 'Audi', vehicleTypes: [{ typeId: 1, typeName: 'Passenger Car' }] },
       ]);
 
@@ -100,7 +111,7 @@ describe('IngestVehicleDataUseCase (Unit)', () => {
       ];
       apiPort.getAllMakes.mockResolvedValue(externalMakes);
       apiPort.getVehicleTypesForMake.mockResolvedValue([]);
-      transformUseCase.execute.mockReturnValue([]);
+      executeSpy.mockReturnValue([]);
 
       await useCase.execute();
 
@@ -138,8 +149,10 @@ describe('IngestVehicleDataUseCase (Unit)', () => {
         { Make_ID: 441, Make_Name: 'BMW' },
       ];
       apiPort.getAllMakes.mockResolvedValue(externalMakes);
-      apiPort.getVehicleTypesForMake.mockResolvedValueOnce([]).mockRejectedValue(new Error('fetch failed'));
-      transformUseCase.execute.mockReturnValue([
+      apiPort.getVehicleTypesForMake
+        .mockResolvedValueOnce([])
+        .mockRejectedValue(new Error('fetch failed'));
+      executeSpy.mockReturnValue([
         { makeId: 440, makeName: 'Audi', vehicleTypes: [] },
         { makeId: 441, makeName: 'BMW', vehicleTypes: [] },
       ]);
@@ -154,7 +167,7 @@ describe('IngestVehicleDataUseCase (Unit)', () => {
       jobRepo.hasRunningJob.mockResolvedValue(false);
       apiPort.getAllMakes.mockResolvedValue([]);
       apiPort.getVehicleTypesForMake.mockResolvedValue([]);
-      transformUseCase.execute.mockImplementation(() => {
+      executeSpy.mockImplementation(() => {
         throw new Error('Transform failed');
       });
 
@@ -167,7 +180,7 @@ describe('IngestVehicleDataUseCase (Unit)', () => {
       jobRepo.hasRunningJob.mockResolvedValue(false);
       apiPort.getAllMakes.mockResolvedValue([{ Make_ID: 440, Make_Name: 'Audi' }]);
       apiPort.getVehicleTypesForMake.mockResolvedValue([]);
-      transformUseCase.execute.mockReturnValue([{ makeId: 440, makeName: 'Audi', vehicleTypes: [] }]);
+      executeSpy.mockReturnValue([{ makeId: 440, makeName: 'Audi', vehicleTypes: [] }]);
       vehicleRepo.saveMany.mockRejectedValue(new Error('db error'));
 
       const result = await useCase.execute();
@@ -181,8 +194,10 @@ describe('IngestVehicleDataUseCase (Unit)', () => {
     it('retries fetching types on failure', async () => {
       jobRepo.hasRunningJob.mockResolvedValue(false);
       apiPort.getAllMakes.mockResolvedValue([{ Make_ID: 440, Make_Name: 'Audi' }]);
-      apiPort.getVehicleTypesForMake.mockRejectedValueOnce(new Error('temp')).mockResolvedValueOnce([]);
-      transformUseCase.execute.mockReturnValue([{ makeId: 440, makeName: 'Audi', vehicleTypes: [] }]);
+      apiPort.getVehicleTypesForMake
+        .mockRejectedValueOnce(new Error('temp'))
+        .mockResolvedValueOnce([]);
+      executeSpy.mockReturnValue([{ makeId: 440, makeName: 'Audi', vehicleTypes: [] }]);
 
       const result = await useCase.execute();
 
@@ -196,7 +211,7 @@ describe('IngestVehicleDataUseCase (Unit)', () => {
       jobRepo.hasRunningJob.mockResolvedValue(false);
       apiPort.getAllMakes.mockResolvedValue([{ Make_ID: 440, Make_Name: 'Audi' }]);
       apiPort.getVehicleTypesForMake.mockRejectedValue(new Error('persistent'));
-      transformUseCase.execute.mockReturnValue([]);
+      executeSpy.mockReturnValue([]);
 
       const result = await useCase.execute();
 
@@ -205,4 +220,3 @@ describe('IngestVehicleDataUseCase (Unit)', () => {
     });
   });
 });
-

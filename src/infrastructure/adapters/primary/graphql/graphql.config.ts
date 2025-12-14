@@ -1,7 +1,8 @@
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ConfigService } from '@nestjs/config';
 import { ModuleRef } from '@nestjs/core';
-import { GraphQLFormattedError } from 'graphql';
+import depthLimitImport from 'graphql-depth-limit';
+import { GraphQLFormattedError, ValidationRule } from 'graphql';
 import { join } from 'path';
 
 import { VehicleTypeDataLoader } from './dataloaders/vehicle-type.dataloader';
@@ -10,10 +11,16 @@ import { DepthLimitPlugin } from './plugins/depth-limit.plugin';
 
 export const getGraphQLConfig = (
   configService: ConfigService,
-  moduleRef?: ModuleRef
+  moduleRef?: ModuleRef,
 ): ApolloDriverConfig => {
-  const nodeEnv = configService.get<string>('NODE_ENV') || 'development';
+  const nodeEnv = configService.get<string>('NODE_ENV') ?? 'development';
   const isDevelopment = nodeEnv === 'development';
+  const depthLimitModule: unknown = depthLimitImport;
+  type DepthLimitFunction = (maxDepth: number) => unknown;
+  const depthLimitFn =
+    (depthLimitModule as { default?: DepthLimitFunction })?.default ??
+    (depthLimitModule as DepthLimitFunction | undefined);
+  const depthLimitRule = typeof depthLimitFn === 'function' ? depthLimitFn(10) : undefined;
 
   return {
     driver: ApolloDriver,
@@ -21,6 +28,7 @@ export const getGraphQLConfig = (
     sortSchema: true,
     playground: isDevelopment,
     introspection: nodeEnv !== 'production',
+    validationRules: depthLimitRule ? [depthLimitRule as ValidationRule] : [],
     context: ({ req, res }: { req: unknown; res: unknown }) => {
       const loaderInstance = moduleRef?.get(VehicleTypeDataLoader, { strict: false });
       return {
@@ -30,14 +38,15 @@ export const getGraphQLConfig = (
       };
     },
     formatError: (error: GraphQLFormattedError, originalError: unknown) => {
+      const extensions = error.extensions ?? {};
       return {
         message: error.message,
-        code: (error.extensions as any)?.code || 'INTERNAL_SERVER_ERROR',
+        code: (extensions.code as string | undefined) ?? 'INTERNAL_SERVER_ERROR',
         path: error.path,
         locations: error.locations,
         extensions: {
-          ...error.extensions,
-          stacktrace: isDevelopment ? (error.extensions as any)?.stacktrace : undefined,
+          ...extensions,
+          stacktrace: isDevelopment ? extensions.stacktrace : undefined,
           originalError,
         },
       };
@@ -45,7 +54,6 @@ export const getGraphQLConfig = (
     plugins: [
       moduleRef?.get(ComplexityPlugin, { strict: false }),
       moduleRef?.get(DepthLimitPlugin, { strict: false }),
-    ].filter(Boolean) as any,
+    ].filter((plugin): plugin is NonNullable<typeof plugin> => Boolean(plugin)),
   };
 };
-

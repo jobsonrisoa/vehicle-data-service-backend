@@ -15,6 +15,7 @@ describe('GetAllVehicleMakesUseCase (Unit)', () => {
       saveMany: jest.fn(),
       findByMakeId: jest.fn(),
       findById: jest.fn(),
+      findByIds: jest.fn(),
       findAll: jest.fn(),
       findByFilter: jest.fn(),
       count: jest.fn(),
@@ -63,7 +64,7 @@ describe('GetAllVehicleMakesUseCase (Unit)', () => {
 
       const result = await useCase.execute(options);
 
-      expect(mockRepository.findAll).toHaveBeenCalledWith(options);
+      expect(mockRepository.findAll.mock.calls[0][0]).toEqual(options);
       expect(result.edges).toHaveLength(2);
       expect(result.edges[0].node.makeId).toBe(440);
       expect(result.edges[1].node.makeId).toBe(441);
@@ -90,8 +91,8 @@ describe('GetAllVehicleMakesUseCase (Unit)', () => {
 
       await useCase.execute(options);
 
-      expect(mockRepository.findAll).toHaveBeenCalledWith(options);
-      expect(mockRepository.findAll).toHaveBeenCalledTimes(1);
+      expect(mockRepository.findAll.mock.calls[0][0]).toEqual(options);
+      expect(mockRepository.findAll.mock.calls).toHaveLength(1);
     });
 
     it('should convert entities to DTOs', async () => {
@@ -163,7 +164,7 @@ describe('GetAllVehicleMakesUseCase (Unit)', () => {
 
       await useCase.execute();
 
-      expect(mockRepository.findAll).toHaveBeenCalledWith({});
+      expect(mockRepository.findAll.mock.calls[0][0]).toEqual({});
     });
 
     it('should preserve cursor information from repository', async () => {
@@ -230,9 +231,9 @@ describe('GetAllVehicleMakesUseCase (Unit)', () => {
 
     it('should validate after cursor is a string', async () => {
       await expect(useCase.execute({ first: 10, after: '' })).rejects.toThrow(ValidationError);
-      await expect(useCase.execute({ first: 10, after: null as any })).rejects.toThrow(
-        ValidationError,
-      );
+      await expect(
+        useCase.execute({ first: 10, after: null as unknown as string }),
+      ).rejects.toThrow(ValidationError);
     });
   });
 
@@ -312,4 +313,3 @@ describe('GetAllVehicleMakesUseCase (Unit)', () => {
     });
   });
 });
-

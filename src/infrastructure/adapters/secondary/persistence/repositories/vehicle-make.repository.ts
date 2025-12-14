@@ -1,9 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 
-import { PaginatedResult, PaginationOptions, Edge, PageInfo } from '@application/dtos/pagination.dto';
-import { IVehicleMakeRepository, VehicleMakeFilter } from '@application/ports/output/vehicle-repository.port';
+import {
+  PaginatedResult,
+  PaginationOptions,
+  Edge,
+  PageInfo,
+} from '@application/dtos/pagination.dto';
+import {
+  IVehicleMakeRepository,
+  VehicleMakeFilter,
+} from '@application/ports/output/vehicle-repository.port';
 import { VehicleMake } from '@domain/entities/vehicle-make.entity';
 import { MakeId } from '@domain/value-objects/make-id.vo';
 
@@ -64,6 +72,19 @@ export class VehicleMakeRepository implements IVehicleMakeRepository {
     return VehicleMakeMapper.toDomain(ormEntity);
   }
 
+  async findByIds(ids: MakeId[]): Promise<VehicleMake[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const ormEntities = await this.ormRepository.find({
+      where: { id: In(ids.map((i) => i.value)) },
+      relations: ['vehicleTypes'],
+    });
+
+    return ormEntities.map((entity) => VehicleMakeMapper.toDomain(entity));
+  }
+
   async findAll(options: PaginationOptions): Promise<PaginatedResult<VehicleMake>> {
     const limit = options.first ?? 10;
 
@@ -119,7 +140,9 @@ export class VehicleMakeRepository implements IVehicleMakeRepository {
     }
 
     if (filter.createdAfter) {
-      query = query.andWhere('make.createdAt > :createdAfter', { createdAfter: filter.createdAfter });
+      query = query.andWhere('make.createdAt > :createdAfter', {
+        createdAfter: filter.createdAfter,
+      });
     }
 
     if (filter.createdBefore) {
@@ -148,4 +171,3 @@ export class VehicleMakeRepository implements IVehicleMakeRepository {
     return parseInt(Buffer.from(cursor, 'base64').toString('utf-8'), 10);
   }
 }
-

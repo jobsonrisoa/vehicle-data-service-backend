@@ -1,4 +1,7 @@
-import { IVehicleMakeRepository, VehicleMakeFilter } from '@application/ports/output/vehicle-repository.port';
+import {
+  IVehicleMakeRepository,
+  VehicleMakeFilter,
+} from '@application/ports/output/vehicle-repository.port';
 import { PaginationOptions, PaginatedResult } from '@application/dtos/pagination.dto';
 import { VehicleMake } from '@domain/entities/vehicle-make.entity';
 import { MakeId } from '@domain/value-objects/make-id.vo';
@@ -18,6 +21,10 @@ class DummyRepo implements IVehicleMakeRepository {
 
   findById(): Promise<VehicleMake | null> {
     return Promise.resolve(null);
+  }
+
+  findByIds(): Promise<VehicleMake[]> {
+    return Promise.resolve([]);
   }
 
   findAll(): Promise<PaginatedResult<VehicleMake>> {

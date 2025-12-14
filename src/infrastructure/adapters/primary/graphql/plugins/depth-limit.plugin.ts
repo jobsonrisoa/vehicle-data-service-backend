@@ -1,11 +1,7 @@
 import { Optional } from '@nestjs/common';
 import { Plugin } from '@nestjs/apollo';
-import {
-  ApolloServerPlugin,
-  GraphQLRequestListener,
-} from 'apollo-server-plugin-base';
+import { ApolloServerPlugin, GraphQLRequestListener } from '@apollo/server';
 import { Logger } from 'nestjs-pino';
-import * as depthLimitModule from 'graphql-depth-limit';
 
 @Plugin()
 export class DepthLimitPlugin implements ApolloServerPlugin {
@@ -13,30 +9,23 @@ export class DepthLimitPlugin implements ApolloServerPlugin {
 
   constructor(@Optional() private readonly logger?: Logger) {}
 
-  async requestDidStart(): Promise<GraphQLRequestListener> {
+  requestDidStart(): Promise<GraphQLRequestListener<any>> {
     const maxDepth = this.MAX_DEPTH;
     const logger = this.logger;
-    const depthLimitFn: any = (depthLimitModule as any).default || (depthLimitModule as any);
-    return {
-      async didResolveOperation({ document }) {
-        const validationErrors = depthLimitFn(
-          maxDepth,
-          {},
-          (depths: Record<string, number>) => {
-            logger?.debug({ depths }, 'Query depth calculated');
+    return Promise.resolve({
+      async validationDidStart() {
+        await Promise.resolve();
+        return async (errors?: ReadonlyArray<Error>) => {
+          await Promise.resolve();
+          if (!errors || errors.length === 0) {
+            return;
           }
-        )(document);
-
-        if (validationErrors && validationErrors.length > 0) {
-          logger?.warn(
-            { maxDepth },
-            'Query depth exceeded limit'
-          );
-
-          throw validationErrors[0];
-        }
+          const hasDepthError = errors.some((err) => err.message.includes('depth'));
+          if (hasDepthError) {
+            logger?.warn({ maxDepth }, 'Query depth exceeded limit');
+          }
+        };
       },
-    };
+    });
   }
 }
-
