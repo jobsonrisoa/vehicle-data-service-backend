@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RabbitMQModule as GolevelupRabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 
 import { IngestionEventConsumer } from './consumers/ingestion-event.consumer';
+import { AuditLogConsumer } from './consumers/audit-log.consumer';
 
 @Module({
   imports: [
@@ -26,8 +27,8 @@ import { IngestionEventConsumer } from './consumers/ingestion-event.consumer';
       }),
     }),
   ],
-  providers: [IngestionEventConsumer],
-  exports: [IngestionEventConsumer],
+  providers: [IngestionEventConsumer, AuditLogConsumer],
+  exports: [IngestionEventConsumer, AuditLogConsumer],
 })
 export class MessagingModule {}
 
