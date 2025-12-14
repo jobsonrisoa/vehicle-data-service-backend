@@ -43,6 +43,9 @@ describe('IngestVehicleDataUseCase (Unit)', () => {
       findByStatus: jest.fn(),
       updateStatus: jest.fn(),
       hasRunningJob: jest.fn(),
+      findAll: jest.fn(),
+      count: jest.fn(),
+      delete: jest.fn(),
     };
 
     apiPort = {
