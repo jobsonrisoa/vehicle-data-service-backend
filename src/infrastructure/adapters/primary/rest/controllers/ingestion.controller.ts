@@ -1,0 +1,70 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
+
+import { IIngestDataPort, ConflictError } from '@core/application/ports/input/ingest-data.port';
+import { IngestionJobDTO } from '@core/application/dtos/ingestion-job.dto';
+
+@Controller('api/v1/ingestion')
+export class IngestionController {
+  constructor(
+    @Inject('IIngestDataPort')
+    private readonly ingestPort: IIngestDataPort
+  ) {}
+
+  @Post('trigger')
+  @HttpCode(HttpStatus.ACCEPTED)
+  async triggerIngestion(): Promise<any> {
+    try {
+      const job = await this.ingestPort.triggerIngestion();
+      return this.toResponse(job);
+    } catch (error) {
+      if (error instanceof ConflictError || (error as Error).message?.includes('already in progress')) {
+        throw new ConflictException('Ingestion already in progress');
+      }
+      throw error;
+    }
+  }
+
+  @Get('status')
+  async getStatus(): Promise<any> {
+    const job = await this.ingestPort.getCurrentIngestion();
+    return job ? this.toResponse(job) : null;
+  }
+
+  @Get('jobs/:jobId')
+  async getJob(@Param('jobId') jobId: string): Promise<any> {
+    const job = await this.ingestPort.getIngestionStatus(jobId);
+    if (!job) {
+      throw new NotFoundException(`Ingestion job ${jobId} not found`);
+    }
+    return this.toResponse(job);
+  }
+
+  private toResponse(dto: IngestionJobDTO) {
+    const progress =
+      dto.totalMakes > 0
+        ? Math.round(((dto.processedMakes + dto.failedMakes) / dto.totalMakes) * 100)
+        : 0;
+    return {
+      id: dto.id,
+      status: dto.status,
+      startedAt: dto.startedAt,
+      completedAt: dto.completedAt,
+      totalMakes: dto.totalMakes,
+      processedMakes: dto.processedMakes,
+      failedMakes: dto.failedMakes,
+      progress,
+      errors: dto.errors.map((e) => e.message),
+    };
+  }
+}
+
