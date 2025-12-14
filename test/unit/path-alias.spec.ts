@@ -5,4 +5,3 @@ describe('path alias', () => {
     expect(sample()).toBe('ok');
   });
 });
-
