@@ -47,7 +47,7 @@ describe('RabbitMQModule', () => {
 
     expect(amqp.connect).toHaveBeenCalledWith('amqp://localhost:5672', { heartbeat: 30 });
     expect(mockConnection.createChannel).toHaveBeenCalled();
-    expect(setupRabbitMQTopology).toHaveBeenCalledWith(mockChannel);
+    expect(setupRabbitMQTopology).toHaveBeenCalledWith(mockChannel, mockLogger);
     expect(mockChannel.close).toHaveBeenCalled();
     expect(mockLogger.info).toHaveBeenCalled();
   });

@@ -33,7 +33,7 @@ export class RabbitMQModule implements OnModuleInit {
       this.logger.info('Initializing RabbitMQ connection');
       const connection = await amqp.connect(url, { heartbeat });
       const channel = await connection.createChannel();
-      await setupRabbitMQTopology(channel);
+      await setupRabbitMQTopology(channel, this.logger);
       await channel.close();
       await connection.close();
       this.logger.info('RabbitMQ topology setup complete');
