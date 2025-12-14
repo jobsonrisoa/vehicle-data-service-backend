@@ -39,6 +39,7 @@
     "@nestjs/typeorm": "^11.0.0",
     "@types/pino": "^7.0.4",
     "@types/uuid": "^8.3.4",
+    "fast-xml-parser": "^5.3.3",
     "pino": "^10.1.0",
     "pino-http": "^11.0.0",
     "pino-pretty": "^13.1.3",
