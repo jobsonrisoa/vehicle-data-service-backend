@@ -120,6 +120,18 @@ class InMemoryIngestionJobRepository implements IIngestionJobRepository {
   async hasRunningJob(): Promise<boolean> {
     return this.jobs.some((j) => j.status === IngestionStatus.IN_PROGRESS);
   }
+
+  async findAll(): Promise<IngestionJob[]> {
+    return [...this.jobs];
+  }
+
+  async count(): Promise<number> {
+    return this.jobs.length;
+  }
+
+  async delete(id: JobId): Promise<void> {
+    this.jobs = this.jobs.filter((j) => !j.id.equals(id));
+  }
 }
 
 class CollectingEventPublisher implements IEventPublisherPort {

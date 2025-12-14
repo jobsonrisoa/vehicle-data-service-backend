@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { PostgreSqlContainer, StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 
 import databaseConfig from '@infrastructure/config/database.config';
 import { getDatabaseConfig } from '@infrastructure/config/database-typeorm.config';
@@ -9,8 +10,13 @@ import { getDatabaseConfig } from '@infrastructure/config/database-typeorm.confi
 describe('Database Connection (Integration)', () => {
   let dataSource: DataSource;
   let moduleRef: TestingModule;
+  let container: StartedPostgreSqlContainer;
 
   beforeAll(async () => {
+    container = await new PostgreSqlContainer('postgres:15-alpine').start();
+
+    process.env.DATABASE_URL = `postgresql://${container.getUsername()}:${container.getPassword()}@${container.getHost()}:${container.getPort()}/${container.getDatabase()}`;
+
     moduleRef = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({
@@ -32,7 +38,12 @@ describe('Database Connection (Integration)', () => {
     if (dataSource?.isInitialized) {
       await dataSource.destroy();
     }
-    await moduleRef.close();
+    if (moduleRef) {
+      await moduleRef.close();
+    }
+    if (container) {
+      await container.stop();
+    }
   });
 
   it('should initialize database connection', () => {

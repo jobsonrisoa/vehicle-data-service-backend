@@ -27,6 +27,18 @@ class DummyJobRepo implements IIngestionJobRepository {
   hasRunningJob(): Promise<boolean> {
     return Promise.resolve(false);
   }
+
+  findAll(): Promise<IngestionJob[]> {
+    return Promise.resolve([]);
+  }
+
+  count(): Promise<number> {
+    return Promise.resolve(0);
+  }
+
+  delete(): Promise<void> {
+    return Promise.resolve();
+  }
 }
 
 describe('IIngestionJobRepository (Contract)', () => {

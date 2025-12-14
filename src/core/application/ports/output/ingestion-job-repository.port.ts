@@ -9,4 +9,7 @@ export interface IIngestionJobRepository {
   findByStatus(status: IngestionStatus): Promise<IngestionJob[]>;
   updateStatus(id: JobId, status: IngestionStatus): Promise<void>;
   hasRunningJob(): Promise<boolean>;
+  findAll(): Promise<IngestionJob[]>;
+  count(): Promise<number>;
+  delete(id: JobId): Promise<void>;
 }
