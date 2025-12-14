@@ -1,5 +1,5 @@
 import { Given, When, Then } from '@cucumber/cucumber';
-import { expect } from '@jest/globals';
+import assert from 'assert';
 
 let firstNumber: number;
 let secondNumber: number;
@@ -18,5 +18,5 @@ When('I add them together', function () {
 });
 
 Then('the result should be {int}', function (expected: number) {
-  expect(result).toBe(expected);
+  assert.strictEqual(result, expected);
 });
