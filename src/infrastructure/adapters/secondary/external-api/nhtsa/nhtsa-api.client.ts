@@ -3,6 +3,7 @@ import { AxiosInstance } from 'axios';
 import { ExternalMakeDTO, ExternalVehicleTypeDTO } from '@application/dtos/external-api.dto';
 import { IExternalVehicleAPIPort } from '@application/ports/output/external-api.port';
 import { ExternalApiError } from '@domain/errors/external-api-error';
+import { retryWithBackoff } from '../retry.decorator';
 import { XmlParserService } from '../xml-parser/xml-parser.service';
 
 interface LoggerLike {
@@ -21,7 +22,9 @@ export class NhtsaApiClient implements IExternalVehicleAPIPort {
   async getAllMakes(): Promise<ExternalMakeDTO[]> {
     try {
       this.logger.info('Fetching all vehicle makes from NHTSA');
-      const response = await this.httpClient.get<string>('/vehicles/getallmakes?format=XML');
+      const response = await retryWithBackoff(
+        () => this.httpClient.get<string>('/vehicles/getallmakes?format=XML'),
+      );
       const makes = this.xmlParser.parseVehicleMakes(response.data);
       this.logger.info({ count: makes.length }, 'Fetched vehicle makes');
       return makes.map((make) => ({
@@ -37,8 +40,8 @@ export class NhtsaApiClient implements IExternalVehicleAPIPort {
   async getVehicleTypesForMake(makeId: number): Promise<ExternalVehicleTypeDTO[]> {
     try {
       this.logger.debug({ makeId }, 'Fetching vehicle types for make');
-      const response = await this.httpClient.get<string>(
-        `/vehicles/GetVehicleTypesForMakeId/${makeId}?format=xml`,
+      const response = await retryWithBackoff(() =>
+        this.httpClient.get<string>(`/vehicles/GetVehicleTypesForMakeId/${makeId}?format=xml`),
       );
       const types = this.xmlParser.parseVehicleTypes(response.data);
       return types.map((type) => ({
