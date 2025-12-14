@@ -10,3 +10,4 @@ export interface IIngestionJobRepository {
   updateStatus(id: JobId, status: IngestionStatus): Promise<void>;
   hasRunningJob(): Promise<boolean>;
 }
+
