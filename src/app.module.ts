@@ -6,9 +6,10 @@ import { LoggerModule } from './infrastructure/logging/logger.module';
 import { DatabaseModule } from './infrastructure/adapters/secondary/persistence/database.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { RestModule } from './infrastructure/adapters/primary/rest/rest.module';
 
 @Module({
-  imports: [ConfigModule, LoggerModule, DatabaseModule],
+  imports: [ConfigModule, LoggerModule, DatabaseModule, RestModule],
   controllers: [AppController],
   providers: [AppService],
 })
