@@ -1,4 +1,5 @@
 import { DataSource } from 'typeorm';
+
 import { setupTestDatabase, teardownTestDatabase } from '@test/testcontainers/test-database';
 
 describe('Sample Integration Test', () => {
@@ -13,7 +14,7 @@ describe('Sample Integration Test', () => {
   });
 
   it('should connect to test database', async () => {
-    const result = await dataSource.query('SELECT 1 as value');
-    expect(result[0].value).toBe(1);
+    const result: Array<{ value: number }> = await dataSource.query('SELECT 1 as value');
+    expect(result[0]?.value).toBe(1);
   });
 });
