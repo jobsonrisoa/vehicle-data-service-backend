@@ -1,46 +1,180 @@
-_format_version: "3.0"
+_format_version: '3.0'
+_transform: true
 
 services:
   - name: vehicle-graphql
     url: http://app:3000/graphql
+    retries: 3
+    connect_timeout: 5000
+    read_timeout: 60000
+    write_timeout: 60000
     routes:
       - name: graphql-route
         paths:
           - /graphql
         methods:
+          - GET
           - POST
           - OPTIONS
         strip_path: false
+        preserve_host: false
+        protocols:
+          - http
+          - https
     plugins:
       - name: rate-limiting
         config:
           minute: 100
+          hour: 5000
           policy: local
+          fault_tolerant: true
+          hide_client_headers: false
       - name: cors
         config:
           origins:
-            - "*"
+            - '*'
           methods:
             - GET
             - POST
             - OPTIONS
           headers:
+            - Accept
             - Content-Type
             - Authorization
+            - X-Request-ID
+          exposed_headers:
+            - X-RateLimit-Limit-Minute
+            - X-RateLimit-Remaining-Minute
+            - X-Request-ID
+          credentials: true
+          max_age: 3600
+          preflight_continue: false
+      - name: request-size-limiting
+        config:
+          allowed_payload_size: 1
+          size_unit: megabytes
+          require_content_length: false
+      - name: request-termination
+        enabled: false
 
   - name: vehicle-api
     url: http://app:3000/api/v1
+    retries: 3
+    connect_timeout: 5000
+    read_timeout: 30000
+    write_timeout: 30000
     routes:
       - name: api-route
         paths:
           - /api/v1
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
         strip_path: false
+        preserve_host: false
+        protocols:
+          - http
+          - https
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 60
+          hour: 2000
+          policy: local
+          fault_tolerant: true
+          hide_client_headers: false
+      - name: cors
+        config:
+          origins:
+            - '*'
+          methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - OPTIONS
+          headers:
+            - Accept
+            - Content-Type
+            - Authorization
+            - X-Request-ID
+          exposed_headers:
+            - X-RateLimit-Limit-Minute
+            - X-RateLimit-Remaining-Minute
+            - X-Request-ID
+          credentials: true
+          max_age: 3600
 
   - name: health
     url: http://app:3000/health
+    retries: 1
+    connect_timeout: 2000
+    read_timeout: 5000
+    write_timeout: 5000
     routes:
       - name: health-route
         paths:
           - /health
         methods:
           - GET
+        strip_path: false
+        preserve_host: false
+        protocols:
+          - http
+          - https
+      - name: health-live-route
+        paths:
+          - /health/live
+        methods:
+          - GET
+        strip_path: false
+      - name: health-ready-route
+        paths:
+          - /health/ready
+        methods:
+          - GET
+        strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 300
+          hour: 10000
+          policy: local
+          fault_tolerant: true
+          hide_client_headers: true
+
+  - name: swagger-docs
+    url: http://app:3000/api/docs
+    retries: 1
+    routes:
+      - name: swagger-route
+        paths:
+          - /api/docs
+        methods:
+          - GET
+        strip_path: false
+
+plugins:
+  - name: prometheus
+    config:
+      per_consumer: false
+      status_code_metrics: true
+      latency_metrics: true
+      bandwidth_metrics: true
+      upstream_health_metrics: true
+  - name: correlation-id
+    config:
+      header_name: X-Request-ID
+      generator: uuid#counter
+      echo_downstream: true
+  - name: file-log
+    config:
+      path: /var/log/kong/access.log
+      reopen: true
+
+upstreams: []
+
+consumers: []
