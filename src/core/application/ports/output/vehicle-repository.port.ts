@@ -1,21 +1,6 @@
+import { PaginatedResult, PaginationOptions } from '@application/dtos/pagination.dto';
 import { VehicleMake } from '@domain/entities/vehicle-make.entity';
 import { MakeId } from '@domain/value-objects/make-id.vo';
-
-export interface PaginationOptions {
-  readonly first?: number;
-  readonly after?: string | null;
-}
-
-export interface PageInfo {
-  readonly hasNextPage: boolean;
-  readonly endCursor: string | null;
-}
-
-export interface PaginatedResult<T> {
-  readonly edges: T[];
-  readonly pageInfo: PageInfo;
-  readonly totalCount: number;
-}
 
 export interface VehicleMakeFilter {
   readonly makeNameContains?: string;

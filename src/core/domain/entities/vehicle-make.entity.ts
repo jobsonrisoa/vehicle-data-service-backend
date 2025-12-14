@@ -6,6 +6,7 @@ import { ValidationError } from '../errors/validation-error';
 interface VehicleMakeProps {
   makeId: number;
   makeName: string;
+  vehicleTypes?: VehicleType[];
 }
 
 interface VehicleMakeSnapshot extends VehicleMakeProps {
@@ -61,10 +62,11 @@ export class VehicleMake extends Entity<MakeId> {
     VehicleMake.validate(props);
     const id = MakeId.create();
     const now = new Date();
+    const vehicleTypes = props.vehicleTypes ? VehicleMake.deduplicateTypes(props.vehicleTypes) : [];
     return new VehicleMake(
       id,
       { makeId: props.makeId, makeName: props.makeName.trim() },
-      [],
+      vehicleTypes,
       now,
       now,
     );
