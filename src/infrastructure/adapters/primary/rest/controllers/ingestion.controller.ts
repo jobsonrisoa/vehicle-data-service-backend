@@ -9,10 +9,21 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
+import {
+  ApiAcceptedResponse,
+  ApiConflictResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 
 import { IIngestDataPort, ConflictError } from '@core/application/ports/input/ingest-data.port';
 import { IngestionJobDTO } from '@core/application/dtos/ingestion-job.dto';
+import { IngestionJobResponse } from '../dtos/ingestion-job.response';
 
+@ApiTags('ingestion')
 @Controller('api/v1/ingestion')
 export class IngestionController {
   constructor(
@@ -22,6 +33,9 @@ export class IngestionController {
 
   @Post('trigger')
   @HttpCode(HttpStatus.ACCEPTED)
+  @ApiOperation({ summary: 'Trigger vehicle data ingestion' })
+  @ApiAcceptedResponse({ description: 'Ingestion job created', type: IngestionJobResponse })
+  @ApiConflictResponse({ description: 'Ingestion already in progress' })
   async triggerIngestion(): Promise<any> {
     try {
       const job = await this.ingestPort.triggerIngestion();
@@ -35,12 +49,18 @@ export class IngestionController {
   }
 
   @Get('status')
+  @ApiOperation({ summary: 'Get current ingestion status' })
+  @ApiOkResponse({ description: 'Current ingestion status', type: IngestionJobResponse })
   async getStatus(): Promise<any> {
     const job = await this.ingestPort.getCurrentIngestion();
     return job ? this.toResponse(job) : null;
   }
 
   @Get('jobs/:jobId')
+  @ApiOperation({ summary: 'Get ingestion job by ID' })
+  @ApiParam({ name: 'jobId', type: String })
+  @ApiOkResponse({ description: 'Ingestion job details', type: IngestionJobResponse })
+  @ApiNotFoundResponse({ description: 'Job not found' })
   async getJob(@Param('jobId') jobId: string): Promise<any> {
     const job = await this.ingestPort.getIngestionStatus(jobId);
     if (!job) {

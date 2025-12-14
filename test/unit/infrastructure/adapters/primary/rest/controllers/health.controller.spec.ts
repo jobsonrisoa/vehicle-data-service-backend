@@ -1,5 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { HealthCheckService, TypeOrmHealthIndicator } from '@nestjs/terminus';
+import { DECORATORS } from '@nestjs/swagger/dist/constants';
 
 import { HealthController } from '@infrastructure/adapters/primary/rest/controllers/health.controller';
 import { RabbitMQHealthIndicator } from '@infrastructure/adapters/primary/rest/indicators/rabbitmq.health-indicator';
@@ -73,6 +74,13 @@ describe('HealthController', () => {
 
     expect(response.status).toBe('ok');
     expect(healthService.check).toHaveBeenCalled();
+  });
+
+  it('has swagger metadata', () => {
+    const tags = Reflect.getMetadata(DECORATORS.API_TAGS, HealthController);
+    const op = Reflect.getMetadata(DECORATORS.API_OPERATION, controller.check);
+    expect(tags).toContain('health');
+    expect(op).toBeDefined();
   });
 });
 

@@ -1,5 +1,6 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { DECORATORS } from '@nestjs/swagger/dist/constants';
 
 import { IngestionController } from '@infrastructure/adapters/primary/rest/controllers/ingestion.controller';
 import { IIngestDataPort, ConflictError } from '@core/application/ports/input/ingest-data.port';
@@ -102,6 +103,13 @@ describe('IngestionController', () => {
 
       await expect(controller.getJob('missing')).rejects.toThrow(NotFoundException);
     });
+  });
+
+  it('has swagger metadata', () => {
+    const tags = Reflect.getMetadata(DECORATORS.API_TAGS, IngestionController);
+    const op = Reflect.getMetadata(DECORATORS.API_OPERATION, controller.triggerIngestion);
+    expect(tags).toContain('ingestion');
+    expect(op).toBeDefined();
   });
 });
 
