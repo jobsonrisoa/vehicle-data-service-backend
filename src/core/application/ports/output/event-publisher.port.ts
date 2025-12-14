@@ -5,4 +5,3 @@ export interface IEventPublisherPort {
   publishMany<T extends DomainEvent>(events: T[]): Promise<void>;
   publishWithRetry<T extends DomainEvent>(event: T, maxRetries?: number): Promise<void>;
 }
-

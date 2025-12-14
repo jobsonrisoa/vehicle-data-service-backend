@@ -20,4 +20,3 @@ export interface IQueryVehiclesPort {
   search(filter: VehicleMakeFilterDTO): Promise<VehicleMakeDTO[]>;
   getStatistics(): Promise<VehicleCatalogStatsDTO>;
 }
-

@@ -1,11 +1,24 @@
-import { IQueryVehiclesPort, VehicleMakeFilterDTO, VehicleCatalogStatsDTO } from '@application/ports/input/query-vehicles.port';
+import {
+  IQueryVehiclesPort,
+  VehicleMakeFilterDTO,
+  VehicleCatalogStatsDTO,
+} from '@application/ports/input/query-vehicles.port';
 import { PaginationOptions, PaginatedResult } from '@application/dtos/pagination.dto';
 import { VehicleMakeDTO } from '@application/dtos/vehicle-make.dto';
 
 describe('IQueryVehiclesPort (Contract)', () => {
   class DummyQueryPort implements IQueryVehiclesPort {
     getAll(): Promise<PaginatedResult<VehicleMakeDTO>> {
-      return Promise.resolve({ edges: [], pageInfo: { hasNextPage: false, endCursor: null }, totalCount: 0 });
+      return Promise.resolve({
+        edges: [],
+        pageInfo: {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          startCursor: null,
+          endCursor: null,
+        },
+        totalCount: 0,
+      });
     }
 
     getById(): Promise<VehicleMakeDTO | null> {

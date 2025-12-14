@@ -1,13 +1,14 @@
-import { IIngestDataPort, ConflictError } from '@application/ports/input/ingest-data.port';
 import { PaginationOptions, PaginatedResult } from '@application/dtos/pagination.dto';
+import { IIngestDataPort, ConflictError } from '@application/ports/input/ingest-data.port';
 import { IngestionJobDTO } from '@application/dtos/ingestion-job.dto';
+import { IngestionStatus } from '@domain/enums/ingestion-status.enum';
 
 describe('IIngestDataPort (Contract)', () => {
   class DummyIngestPort implements IIngestDataPort {
     triggerIngestion(): Promise<IngestionJobDTO> {
       return Promise.resolve({
         id: 'job-1',
-        status: 'PENDING' as any,
+        status: IngestionStatus.PENDING,
         startedAt: new Date(),
         completedAt: null,
         totalMakes: 0,
@@ -26,7 +27,11 @@ describe('IIngestDataPort (Contract)', () => {
     }
 
     getIngestionHistory(): Promise<PaginatedResult<IngestionJobDTO>> {
-      return Promise.resolve({ edges: [], pageInfo: { hasNextPage: false, endCursor: null }, totalCount: 0 });
+      return Promise.resolve({
+        edges: [],
+        pageInfo: { hasNextPage: false, hasPreviousPage: false, startCursor: null, endCursor: null },
+        totalCount: 0,
+      });
     }
   }
 

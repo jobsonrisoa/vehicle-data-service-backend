@@ -1,8 +1,4 @@
-export interface VehicleTypeDTO {
-  readonly id: string;
-  readonly typeId: number;
-  readonly typeName: string;
-}
+import { VehicleTypeDTO } from './vehicle-type.dto';
 
 export interface VehicleMakeDTO {
   readonly id: string;
@@ -13,3 +9,9 @@ export interface VehicleMakeDTO {
   readonly updatedAt: Date;
 }
 
+export interface VehicleMakeSummaryDTO {
+  readonly id: string;
+  readonly makeId: number;
+  readonly makeName: string;
+  readonly vehicleTypeCount: number;
+}

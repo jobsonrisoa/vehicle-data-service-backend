@@ -34,4 +34,3 @@ export interface IVehicleMakeRepository {
   count(): Promise<number>;
   deleteAll(): Promise<void>;
 }
-

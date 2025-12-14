@@ -13,4 +13,3 @@ export interface IExternalVehicleAPIPort {
   getVehicleTypesForMake(makeId: number): Promise<ExternalVehicleTypeDTO[]>;
   healthCheck(): Promise<boolean>;
 }
-

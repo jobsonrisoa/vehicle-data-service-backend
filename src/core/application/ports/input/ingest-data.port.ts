@@ -14,4 +14,3 @@ export interface IIngestDataPort {
   getCurrentIngestion(): Promise<IngestionJobDTO | null>;
   getIngestionHistory(options: PaginationOptions): Promise<PaginatedResult<IngestionJobDTO>>;
 }
-
