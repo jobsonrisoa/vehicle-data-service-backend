@@ -2,10 +2,15 @@ import { Test } from '@nestjs/testing';
 
 import { VehicleResolver } from '@infrastructure/adapters/primary/graphql/resolvers/vehicle.resolver';
 import { IQueryVehiclesPort } from '@core/application/ports/input/query-vehicles.port';
+import { VehicleTypeType } from '@infrastructure/adapters/primary/graphql/types/vehicle-type.type';
 
 describe('VehicleResolver', () => {
   let resolver: VehicleResolver;
   let mockQueryPort: jest.Mocked<IQueryVehiclesPort>;
+  const vehicleTypeLoader = {
+    load: jest.fn(),
+  };
+  const context = { vehicleTypeLoader };
 
   beforeEach(async () => {
     mockQueryPort = {
@@ -150,6 +155,26 @@ describe('VehicleResolver', () => {
     it('validates makeId is positive', async () => {
       await expect(resolver.vehicleMake(-1)).rejects.toThrow();
       expect(mockQueryPort.getById).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('vehicleTypes field', () => {
+    it('loads vehicle types via dataloader', async () => {
+      const make = { id: 'make-1' } as any;
+      const types: VehicleTypeType[] = [
+        { id: 't1', typeId: 1, typeName: 'Car' },
+      ];
+      vehicleTypeLoader.load.mockResolvedValue(types);
+
+      const result = await resolver.vehicleTypes(make, context);
+
+      expect(vehicleTypeLoader.load).toHaveBeenCalledWith('make-1');
+      expect(result).toEqual(types);
+    });
+
+    it('returns empty array when loader missing', async () => {
+      const result = await resolver.vehicleTypes({ id: 'x' } as any, {});
+      expect(result).toEqual([]);
     });
   });
 });

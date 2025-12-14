@@ -1,9 +1,15 @@
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ConfigService } from '@nestjs/config';
+import { ModuleRef } from '@nestjs/core';
 import { GraphQLFormattedError } from 'graphql';
 import { join } from 'path';
 
-export const getGraphQLConfig = (configService: ConfigService): ApolloDriverConfig => {
+import { VehicleTypeDataLoader } from './dataloaders/vehicle-type.dataloader';
+
+export const getGraphQLConfig = (
+  configService: ConfigService,
+  moduleRef?: ModuleRef
+): ApolloDriverConfig => {
   const nodeEnv = configService.get<string>('NODE_ENV') || 'development';
   const isDevelopment = nodeEnv === 'development';
 
@@ -13,7 +19,14 @@ export const getGraphQLConfig = (configService: ConfigService): ApolloDriverConf
     sortSchema: true,
     playground: isDevelopment,
     introspection: nodeEnv !== 'production',
-    context: ({ req, res }: { req: unknown; res: unknown }) => ({ req, res }),
+    context: ({ req, res }: { req: unknown; res: unknown }) => {
+      const loaderInstance = moduleRef?.get(VehicleTypeDataLoader, { strict: false });
+      return {
+        req,
+        res,
+        vehicleTypeLoader: loaderInstance?.createLoader(),
+      };
+    },
     formatError: (error: GraphQLFormattedError, originalError: unknown) => {
       return {
         message: error.message,

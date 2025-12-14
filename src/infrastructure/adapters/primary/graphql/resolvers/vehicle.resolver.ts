@@ -1,5 +1,5 @@
 import { Inject } from '@nestjs/common';
-import { Resolver, Query, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Args, Int, ResolveField, Parent, Context } from '@nestjs/graphql';
 
 import { VehicleMakeType } from '../types/vehicle-make.type';
 import { VehicleMakeConnection } from '../types/pagination.type';
@@ -9,6 +9,7 @@ import { VehicleMakeDTO } from '@core/application/dtos/vehicle-make.dto';
 import { PaginatedResult, PaginationOptions } from '@core/application/dtos/pagination.dto';
 import { VehicleMakeEdge } from '../types/pagination.type';
 import { VehicleTypeType } from '../types/vehicle-type.type';
+import { VehicleTypeDTO } from '@core/application/dtos/vehicle-type.dto';
 
 @Resolver(() => VehicleMakeType)
 export class VehicleResolver {
@@ -43,6 +44,14 @@ export class VehicleResolver {
     return dto ? this.toVehicleMake(dto) : null;
   }
 
+  @ResolveField(() => [VehicleTypeType])
+  async vehicleTypes(@Parent() make: VehicleMakeType, @Context() context: any): Promise<VehicleTypeType[]> {
+    if (context.vehicleTypeLoader) {
+      return context.vehicleTypeLoader.load(make.id);
+    }
+    return [];
+  }
+
   private toConnection(result: PaginatedResult<VehicleMakeDTO>): VehicleMakeConnection {
     const edges: VehicleMakeEdge[] = result.edges.map((edge) => ({
       cursor: edge.cursor,
@@ -72,7 +81,7 @@ export class VehicleResolver {
     };
   }
 
-  private toVehicleType(dto: { id: string; typeId: number; typeName: string }): VehicleTypeType {
+  private toVehicleType(dto: VehicleTypeDTO): VehicleTypeType {
     return {
       id: dto.id,
       typeId: dto.typeId,
