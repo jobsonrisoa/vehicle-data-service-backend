@@ -11,7 +11,7 @@ export class VehicleTypeType {
   @Field()
   typeName!: string;
 
-  @Field()
-  createdAt!: Date;
+  @Field({ nullable: true })
+  createdAt?: Date;
 }
 
