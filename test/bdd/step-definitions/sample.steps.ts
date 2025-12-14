@@ -1,5 +1,5 @@
 import { Given, When, Then } from '@cucumber/cucumber';
-import assert from 'assert';
+import * as assert from 'assert';
 
 let firstNumber: number;
 let secondNumber: number;
