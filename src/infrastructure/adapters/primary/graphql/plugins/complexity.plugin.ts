@@ -3,14 +3,12 @@ import { Plugin } from '@nestjs/apollo';
 import { GraphQLSchemaHost } from '@nestjs/graphql';
 import {
   ApolloServerPlugin,
+  GraphQLRequestContextDidResolveOperation,
   GraphQLRequestListener,
-} from 'apollo-server-plugin-base';
+  BaseContext,
+} from '@apollo/server';
 import { GraphQLError } from 'graphql';
-import {
-  fieldExtensionsEstimator,
-  getComplexity,
-  simpleEstimator,
-} from 'graphql-query-complexity';
+import { fieldExtensionsEstimator, getComplexity, simpleEstimator } from 'graphql-query-complexity';
 import { Logger } from 'nestjs-pino';
 
 @Plugin()
@@ -19,48 +17,46 @@ export class ComplexityPlugin implements ApolloServerPlugin {
 
   constructor(
     private readonly gqlSchemaHost: GraphQLSchemaHost,
-    @Optional() private readonly logger?: Logger
+    @Optional() private readonly logger?: Logger,
   ) {}
 
-  async requestDidStart(): Promise<GraphQLRequestListener> {
+  requestDidStart(): Promise<GraphQLRequestListener<BaseContext>> {
     const { schema } = this.gqlSchemaHost;
     const max = this.MAX_COMPLEXITY;
     const logger = this.logger;
 
-    return {
-      async didResolveOperation({ request, document }) {
-        const complexity = getComplexity({
-          schema,
-          operationName: request.operationName,
-          query: document,
-          variables: request.variables,
-          estimators: [
-            fieldExtensionsEstimator(),
-            simpleEstimator({ defaultComplexity: 1 }),
-          ],
-        });
+    return Promise.resolve({
+      didResolveOperation({
+        request,
+        document,
+      }: GraphQLRequestContextDidResolveOperation<BaseContext>) {
+        return Promise.resolve().then(() => {
+          const complexity = getComplexity({
+            schema,
+            operationName: request.operationName,
+            query: document,
+            variables: request.variables,
+            estimators: [fieldExtensionsEstimator(), simpleEstimator({ defaultComplexity: 1 })],
+          });
 
-        if (complexity > max) {
-          logger?.warn(
-            { complexity, maxComplexity: max },
-            'Query complexity exceeded limit'
-          );
+          if (complexity > max) {
+            logger?.warn({ complexity, maxComplexity: max }, 'Query complexity exceeded limit');
 
-          throw new GraphQLError(
-            `Query is too complex: ${complexity}. Maximum allowed complexity: ${max}`,
-            {
-              extensions: {
-                code: 'QUERY_TOO_COMPLEX',
-                complexity,
-                maxComplexity: max,
+            throw new GraphQLError(
+              `Query is too complex: ${complexity}. Maximum allowed complexity: ${max}`,
+              {
+                extensions: {
+                  code: 'QUERY_TOO_COMPLEX',
+                  complexity,
+                  maxComplexity: max,
+                },
               },
-            }
-          );
-        }
+            );
+          }
 
-        logger?.debug({ complexity }, 'Query complexity calculated');
+          logger?.debug({ complexity }, 'Query complexity calculated');
+        });
       },
-    };
+    });
   }
 }
-
