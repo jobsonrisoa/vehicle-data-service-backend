@@ -65,8 +65,8 @@ Production-ready NestJS service that ingests vehicle data from the NHTSA API, tr
 ## Quick Start
 
 ```bash
-git clone https://github.com/your-org/vehicle-data-service.git
-cd vehicle-data-service
+git clone https://github.com/jobsonrisoa/vehicle-data-service-backend.git
+cd vehicle-data-service-backend
 
 npm install
 cp .env.example .env   # fill in required values

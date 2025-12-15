@@ -56,9 +56,9 @@ Supported platforms: Docker 24+, Docker Compose 2+, Kubernetes 1.25+, Linux (Ubu
 1. Clone and select revision
 
 ```bash
-git clone https://github.com/your-org/vehicle-data-service.git
-cd vehicle-data-service
-git checkout <tag-or-branch>
+git clone https://github.com/jobsonrisoa/vehicle-data-service-backend.git
+cd vehicle-data-service-backend
+git checkout main
 ```
 
 2. Configure environment files (examples)
