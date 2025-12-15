@@ -7,11 +7,11 @@ import * as nock from 'nock';
 
 let sharedContext: any;
 
-BeforeAll(async function (this: VehicleWorld) {
+BeforeAll(async function () {
   sharedContext = await createTestApp();
 });
 
-AfterAll(async function (this: VehicleWorld) {
+AfterAll(async function () {
   if (sharedContext) {
     await destroyTestApp(sharedContext);
   }

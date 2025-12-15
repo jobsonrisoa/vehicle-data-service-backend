@@ -21,9 +21,9 @@ export class ComplexityPlugin implements ApolloServerPlugin {
   ) {}
 
   requestDidStart(): Promise<GraphQLRequestListener<BaseContext>> {
-    const { schema } = this.gqlSchemaHost;
     const max = this.MAX_COMPLEXITY;
     const logger = this.logger;
+    const schemaHost = this.gqlSchemaHost;
 
     return Promise.resolve({
       didResolveOperation({
@@ -31,8 +31,13 @@ export class ComplexityPlugin implements ApolloServerPlugin {
         document,
       }: GraphQLRequestContextDidResolveOperation<BaseContext>) {
         return Promise.resolve().then(() => {
+          if (!schemaHost?.schema) {
+            logger?.warn('GraphQL schema not available for complexity check');
+            return;
+          }
+
           const complexity = getComplexity({
-            schema,
+            schema: schemaHost.schema,
             operationName: request.operationName,
             query: document,
             variables: request.variables,

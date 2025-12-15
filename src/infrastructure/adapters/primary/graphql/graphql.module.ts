@@ -11,10 +11,12 @@ import { ComplexityPlugin } from './plugins/complexity.plugin';
 import { DepthLimitPlugin } from './plugins/depth-limit.plugin';
 import { VehicleResolver } from './resolvers/vehicle.resolver';
 import { IngestionResolver } from './resolvers/ingestion.resolver';
+import { ApplicationModule } from '@core/application/application.module';
 
 @Module({
   imports: [
     ConfigModule,
+    ApplicationModule,
     NestGraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
       imports: [ConfigModule],
@@ -32,4 +34,3 @@ import { IngestionResolver } from './resolvers/ingestion.resolver';
   ],
 })
 export class GraphQLModule {}
-

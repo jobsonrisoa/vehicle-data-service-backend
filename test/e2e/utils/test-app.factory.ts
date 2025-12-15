@@ -17,7 +17,16 @@ export interface TestContext {
   dataSource: DataSource;
 }
 
-type IngestionJobState = IngestionJobDTO & { errors: Array<{ makeId: number; message: string }> };
+interface IngestionJobState {
+  id: string;
+  status: IngestionStatus;
+  startedAt: Date;
+  completedAt: Date | null;
+  totalMakes: number;
+  processedMakes: number;
+  failedMakes: number;
+  errors: Array<{ makeId: number; message: string; timestamp: Date }>;
+}
 
 export async function createTestApp(): Promise<TestContext> {
   const postgresContainer = await new PostgreSqlContainer('postgres:15-alpine')
@@ -69,17 +78,21 @@ export async function createTestApp(): Promise<TestContext> {
           await clearDatabase(app);
           await seedDatabase(app);
 
-          jobState.totalMakes = 100;
-          jobState.processedMakes = 100;
-          jobState.status = IngestionStatus.COMPLETED;
-          jobState.completedAt = new Date();
+          jobState = {
+            ...jobState,
+            totalMakes: 100,
+            processedMakes: 100,
+            status: IngestionStatus.COMPLETED,
+            completedAt: new Date(),
+          };
 
-          return { ...jobState, errors: jobState.errors };
+          return { ...jobState, errors: jobState.errors } as IngestionJobDTO;
         },
-        getCurrentIngestion: async (): Promise<IngestionJobDTO | null> => jobState,
+        getCurrentIngestion: async (): Promise<IngestionJobDTO | null> =>
+          jobState as IngestionJobDTO | null,
         getIngestionStatus: async (jobId: string): Promise<IngestionJobDTO | null> => {
           if (jobState && jobState.id === jobId) {
-            return jobState;
+            return jobState as IngestionJobDTO;
           }
           return null;
         },

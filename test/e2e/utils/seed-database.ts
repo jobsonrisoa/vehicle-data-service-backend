@@ -27,9 +27,8 @@ export async function seedDatabase(app: INestApplication): Promise<void> {
       const type = dataSource.getRepository(VehicleTypeOrmEntity).create({
         typeId: 1000 + makes.indexOf(make) * 10 + j,
         typeName: `TEST TYPE ${j}`,
-        vehicleMake: make,
+        vehicleMakeId: make.id,
         createdAt: new Date(),
-        updatedAt: new Date(),
       });
       types.push(type);
     }
@@ -53,9 +52,8 @@ export async function seedDatabase(app: INestApplication): Promise<void> {
   for (const typeData of astonTypes) {
     const type = dataSource.getRepository(VehicleTypeOrmEntity).create({
       ...typeData,
-      vehicleMake: astonMartin,
+      vehicleMakeId: astonMartin.id,
       createdAt: new Date(),
-      updatedAt: new Date(),
     });
     await dataSource.getRepository(VehicleTypeOrmEntity).save(type);
   }

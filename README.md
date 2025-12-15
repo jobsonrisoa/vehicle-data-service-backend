@@ -178,13 +178,19 @@ curl http://localhost:3000/health/live
 
 ## Development
 
-```bash
-npm run start:dev       # watch mode
-npm run lint            # ESLint
-npm run format          # Prettier
-npm run migration:run   # apply migrations
-npm run migration:revert
-```
+### Scripts
+
+| Script                      | Description                        |
+| --------------------------- | ---------------------------------- |
+| `npm run start:dev`         | Start infra + app (complete)       |
+| `npm run start:dev:only`    | Start only NestJS (without docker) |
+| `npm run docker:infra`      | Start only PostgreSQL and RabbitMQ |
+| `npm run docker:infra:stop` | Stop the containers                |
+| `npm run docker:down`       | Remove all containers              |
+| `npm run lint`              | ESLint                             |
+| `npm run format`            | Prettier                           |
+| `npm run migration:run`     | Apply migrations                   |
+| `npm run migration:revert`  | Revert last migration              |
 
 ## Testing
 

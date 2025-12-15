@@ -8,7 +8,7 @@ import { AuditLogConsumer } from './consumers/audit-log.consumer';
 @Module({
   imports: [
     ConfigModule,
-    GolevelupRabbitMQModule.forRootAsync(GolevelupRabbitMQModule, {
+    GolevelupRabbitMQModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         uri: configService.get<string>('RABBITMQ_URL') || 'amqp://localhost:5672',
@@ -31,4 +31,3 @@ import { AuditLogConsumer } from './consumers/audit-log.consumer';
   exports: [IngestionEventConsumer, AuditLogConsumer],
 })
 export class MessagingModule {}
-

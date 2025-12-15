@@ -68,7 +68,7 @@ When('an event should be published', async function (this: VehicleWorld) {
 When('I attempt to create a VehicleMake entity', function (this: VehicleWorld) {
   const invalidData = this.getContext<{ makeId: number; makeName: string }>('invalidMakeData');
   if (invalidData && invalidData.makeId < 0) {
-    this.error = new Error('makeId must be positive');
+    this.setError(new Error('makeId must be positive'));
   }
 });
 
@@ -86,7 +86,7 @@ When(
         [makeId, `Duplicate Make ${makeId}`],
       );
     } catch (error) {
-      this.error = error as Error;
+      this.setError(error as Error);
     }
   },
 );
@@ -142,8 +142,9 @@ Then('a single test request should be attempted', function (this: VehicleWorld) 
 });
 
 Then('a domain validation error should be thrown', function (this: VehicleWorld) {
-  assert.ok(this.error, 'Error should be set');
-  assert.ok(this.error.message.includes('must be positive'), 'Should be validation error');
+  const error = this.getError();
+  assert.ok(error, 'Error should be set');
+  assert.ok(error.message.includes('must be positive'), 'Should be validation error');
 });
 
 Then('the invalid data should not be persisted', async function (this: VehicleWorld) {
@@ -156,7 +157,7 @@ Then('the invalid data should not be persisted', async function (this: VehicleWo
 });
 
 Then('a database constraint violation should occur', function (this: VehicleWorld) {
-  assert.ok(this.error, 'Error should be set');
+  assert.ok(this.getError(), 'Error should be set');
 });
 
 Then('the operation should be rolled back', function (this: VehicleWorld) {
@@ -173,5 +174,5 @@ Then('the existing data should remain unchanged', async function (this: VehicleW
 });
 
 Then('an appropriate error should be returned to the caller', function (this: VehicleWorld) {
-  assert.ok(this.error, 'Error should be returned');
+  assert.ok(this.getError(), 'Error should be returned');
 });

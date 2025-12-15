@@ -3,11 +3,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
 import { DataSource, In } from 'typeorm';
 import { PostgreSqlContainer, StartedPostgreSqlContainer } from '@testcontainers/postgresql';
-import { Module, Global } from '@nestjs/common';
 import 'pg';
 
 import { AppModule } from '../../../src/app.module';
-import { GraphQLModule } from '../../../src/infrastructure/adapters/primary/graphql/graphql.module';
 import { VehicleMakeOrmEntity } from '../../../src/infrastructure/adapters/secondary/persistence/entities/vehicle-make.orm-entity';
 import { VehicleTypeOrmEntity } from '../../../src/infrastructure/adapters/secondary/persistence/entities/vehicle-type.orm-entity';
 import { IQueryVehiclesPort } from '../../../src/core/application/ports/input/query-vehicles.port';
@@ -199,28 +197,21 @@ describe('GraphQL Vehicle Queries (E2E)', () => {
       },
     };
 
-    @Global()
-    @Module({
-      providers: [
-        { provide: 'IQueryVehiclesPort', useValue: queryPort },
-        { provide: 'IVehicleMakeRepository', useValue: makeRepoMock },
-        {
-          provide: 'IIngestDataPort',
-          useValue: {
-            triggerIngestion: jest.fn(),
-            getCurrentIngestion: jest.fn(),
-            getIngestionStatus: jest.fn(),
-            getIngestionHistory: jest.fn(),
-          },
-        },
-      ],
-      exports: ['IQueryVehiclesPort', 'IVehicleMakeRepository', 'IIngestDataPort'],
-    })
-    class GraphQLTestProvidersModule {}
-
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule, GraphQLModule, GraphQLTestProvidersModule],
-    }).compile();
+      imports: [AppModule],
+    })
+      .overrideProvider('IQueryVehiclesPort')
+      .useValue(queryPort)
+      .overrideProvider('IVehicleMakeRepository')
+      .useValue(makeRepoMock)
+      .overrideProvider('IIngestDataPort')
+      .useValue({
+        triggerIngestion: jest.fn(),
+        getCurrentIngestion: jest.fn(),
+        getIngestionStatus: jest.fn(),
+        getIngestionHistory: jest.fn(),
+      })
+      .compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();

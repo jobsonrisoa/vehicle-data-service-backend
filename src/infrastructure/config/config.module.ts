@@ -7,10 +7,10 @@ import { loadConfiguration } from './configuration';
 @Module({
   imports: [
     NestConfigModule.forRoot({
+      envFilePath: '.env',
       load: [loadConfiguration],
       isGlobal: true,
       cache: true,
-      validate: loadConfiguration,
     }),
   ],
 })
